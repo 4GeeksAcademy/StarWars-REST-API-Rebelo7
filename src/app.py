@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import Character, Planet, db, User
 #from models import Person
 
 app = Flask(__name__)
@@ -51,7 +51,7 @@ def handle_add_user():
 
     return "user created", 201
 
-#Get a list of all the people in the database
+#Get a list of all users in the database
 
 @app.route('/user', methods=['GET'])
 def handle_get_users():
@@ -68,7 +68,7 @@ def handle_get_users():
 
    return jsonify(response_body), 200
 
-#Get a one single people information
+#Get a one single user information
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def handle_get_one_user(user_id):
@@ -78,7 +78,7 @@ def handle_get_one_user(user_id):
          return jsonify({"msg": "User dont exist"}), 404
 
     response_body = {
-        "nombre_usuario": one_user.serialize()
+        "user_name": one_user.serialize()
     }
 
     return jsonify(response_body), 200
@@ -102,13 +102,12 @@ def handle_add_planet():
     db.session.add(planet)
     db.session.commit()
 
-    return "user created", 201
-
+    return "planet created", 201
 
 
 #Get a list of all the planets in the database
 
-@app.route('/planet', methods=['GET'])
+@app.route('/planets', methods=['GET'])
 def handle_get_all_planets():
 
     all_planets = Planet.query.all()
@@ -116,10 +115,91 @@ def handle_get_all_planets():
     results = all_planets
 
     if results == []:
-         return jsonify({"msg":"No hay planetas "}), 404
+         return jsonify({"msg":"There is no planets "}), 404
 
     response_body = {
         "results": results
+    }
+
+    return jsonify(response_body), 200
+
+#Get one planet
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def planet(planet_id):
+
+    print(planet_id)
+    planet_query = Planet.query.filter_by(id= planet_id).first()
+    print(planet_query)
+
+    if planet_query is None:
+         return jsonify({"msg":"Planet dont exist"}), 404
+
+
+    response_body = {
+        "msg": "This is the planet requested",
+        "result": planet_query.serialize()
+    }
+
+    return jsonify(response_body), 200
+
+#Create a character
+
+@app.route('/people', methods=['POST'])
+def handle_add_people():
+   people = Character()
+   jason_data = request.get_json()
+   people.Name = jason_data ["Name"]
+   people.Height = jason_data ["Height"]
+   people.Mass = jason_data ["Mass"],
+   people.Hair_Color = jason_data ["Hair_Color"],
+   people.Skin_Color = jason_data ["Skin_Color"],
+   people.Eye_Color = jason_data ["Eye_Color"],
+   people.Birth_Year =jason_data ["Birth_Year"],
+   people.Gender = jason_data ["Gender"]
+  
+   db.session.add(people)
+   db.session.commit()
+
+   return "Person created", 201
+
+#Get a list of all the people in the database
+
+@app.route('/people', methods=['GET'])
+def get_people():
+
+    people_query = Character.query.all()
+
+    results = list(map(lambda item: item.serialize(),people_query))
+    print(results)
+
+    if results == []:
+         return jsonify({"msg":"Character dont exist"}), 404
+
+
+    response_body = {
+        "msg": "This are the characters",
+        "results": results
+    }
+
+    return jsonify(response_body), 200
+
+#Get a one single people information
+
+@app.route('/people/<int:people_id>', methods=['GET'])
+def people(people_id):
+
+    print(people_id)
+    people_query = Character.query.filter_by(id= people_id).first()
+    print(people_query)
+
+    if people_query is None:
+         return jsonify({"msg":"Character dont exist"}), 404
+
+
+    response_body = {
+        "msg": "People ",
+        "result": people_query.serialize()
     }
 
     return jsonify(response_body), 200

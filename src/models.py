@@ -20,7 +20,7 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
     
-class Planets(db.Model):
+class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
     diameter = db.Column(db.String(80), unique=False, nullable=False)
@@ -48,3 +48,32 @@ class Planets(db.Model):
             "terrain": self.terrain,
             "surface_water": self.surface_water,
         }   
+    
+class Character(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String(120), unique=True, nullable=False)
+    Height = db.Column(db.String(80), unique=False, nullable=False)
+    Mass = db.Column(db.String(80), unique=False, nullable=False)
+    Hair_Color = db.Column(db.String(80), unique=False, nullable=False)
+    Skin_Color = db.Column(db.String(80), unique=False, nullable=False)
+    Eye_Color = db.Column(db.String(80), unique=False, nullable=False)
+    Birth_Year = db.Column(db.String(80), unique=False, nullable=False)
+    Gender = db.Column(db.String(80), unique=False, nullable=False)
+    
+    
+    def __repr__(self):
+        return '<Characters %r>' % self.id
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "Name": self.Name,
+            "Height": self.Height,
+            "Mass": self.Mass,
+            "Hair_Color": self.Hair_Color,
+            "Skin_Color": self.Skin_Color,
+            "Eye_Color": self.Eye_Color,
+            "Birth_Year": self.Birth_Year,
+            "Gender": self.Gender,
+        }
+    
