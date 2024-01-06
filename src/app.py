@@ -291,6 +291,57 @@ def delete_favorite_planet(user_id, planet_id):
     db.session.commit()
     return jsonify({"msg": "Favorite planet deleted successfully"}), 200
 
+@app.route(
+    "/favorite/user/<int:user_id>/character/<int:character_id>", methods=["POST"])
+def add_favorite_character(user_id, character_id):
+    user = User.query.get(user_id)
+    character = Character.query.get(character_id)
+
+    if user is None:
+        return (
+            jsonify({"msg": "The user with  doesn't exist".format(user_id)}),
+            404,
+        )
+    if character is None:
+        return (
+            jsonify(
+                {"msg": "The character doesn't exist".format(character_id)}
+            ),
+            404,
+        )
+
+    favorite_character = (
+        db.session.query(Favorite)
+        .filter(Favorite.user_id == user_id, Favorite.character_id == character_id)
+        .first()
+    )
+
+    if favorite_character:
+        return jsonify({"msg": "It's already on favorites list"}), 409
+
+    new_favorite = Favorite(user_id=user_id, character_id=character_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify({"msg": "Favorite character added successfully"}), 201
+
+@app.route(
+    "/favorite/user/<int:user_id>/character/<int:character_id>", methods=["DELETE"])
+def delete_favorite_character(user_id, character_id):
+    favorite = (
+        db.session.query(Favorite)
+        .filter(Favorite.user_id == user_id, Favorite.character_id == character_id)
+        .first()
+    )
+
+    if favorite is None:
+        return jsonify({"msg": "Favorite character not found"}), 404
+
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite character deleted successfully"}), 200
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
