@@ -77,3 +77,36 @@ class Character(db.Model):
             "Gender": self.Gender,
         }
     
+class Favorite(db.Model):
+   __tablename__ = "favorite"
+   id = db.Column(db.Integer, primary_key=True)
+   user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+   user = db.relationship("User")
+   character_id = db.Column(db.Integer, db.ForeignKey("character.id"), nullable=True)
+   character = db.relationship("Character")
+   planet_id = db.Column(db.Integer, db.ForeignKey("planet.id"), nullable=True)
+   planet = db.relationship("Planet")
+   
+   __table_args__ = (
+       db.UniqueConstraint(
+           "user_id",
+           "character_id",
+           "planet_id",
+           name="uq_user_favorites",
+       ),
+   )
+
+   def __repr__(self):
+       return "{}".format(self.user_id.user_name)
+
+   def serialize(self):
+       data = {
+           "user_id": self.user_id,
+           "user_name": self.user_id.user_name if self.user_id else None,
+           "type": "Favorite",
+       }
+       if self.character_id:
+           data["object_id"] = self.character_id
+       elif self.planet_id:
+           data["object_id"] = self.planet_id
+       return data

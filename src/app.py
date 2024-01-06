@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import Character, Planet, db, User
+from models import Character, Favorite, Planet, db, User
 #from models import Person
 
 app = Flask(__name__)
@@ -203,6 +203,93 @@ def people(people_id):
     }
 
     return jsonify(response_body), 200
+
+@app.route("/favorites/user/<int:user_id>", methods=["GET"])
+def get_favorites(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        return (
+            jsonify({"msg": "The user  doesn't exist".format(user_id)}),
+            404,
+        )
+    favorite_planets = (
+        db.session.query(Favorite, Planet)
+        .join(Planet)
+        .filter(Favorite.user_id == user_id)
+        .all()
+    )
+
+    favorite_planets_serialize = []
+    for favorite_planet, planet_item in favorite_planets:
+        favorite_planets_serialize.append({"planet": planet_item.serialize()})
+
+    favorite_characters = (
+        db.session.query(Favorite, Character)
+        .join(Character)
+        .filter(Favorite.user_id == user_id)
+        .all()
+    )
+    favorite_characters_serialize = []
+    for favorite_character, character_item in favorite_characters:
+        favorite_characters_serialize.append({"character": character_item.serialize()})
+
+    return (
+        jsonify(
+            {
+                "msg": "ok",
+                "user": user.serialize(),
+                "Favorite planets": favorite_planets_serialize,
+                "Favorite characters": favorite_characters_serialize,
+            }
+        ),
+        200,
+    )
+
+@app.route("/favorite/user/<int:user_id>/planet/<int:planet_id>", methods=["POST"])
+def add_favorite_planet(user_id, planet_id):
+    user = User.query.get(user_id)
+    planet = Planet.query.get(planet_id)
+
+    if user is None:
+        return (
+            jsonify({"msg": "The user doesn't exist".format(user_id)}),
+            404,
+        )
+    if planet is None:
+        return (
+            jsonify({"msg": "The planet doesn't exist".format(planet_id)}),
+            404,
+        )
+
+    favorite_planets = (
+        db.session.query(Favorite)
+        .filter(Favorite.user_id == user_id, Favorite.planet_id == planet_id)
+        .first()
+    )
+
+    if favorite_planets:
+        return jsonify({"msg": "It's already on favorites list"}), 409
+
+    new_favorite = Favorite(user_id=user_id, planet_id=planet_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify({"msg": "Favorite planet added successfully"}), 201
+
+@app.route("/favorite/user/<int:user_id>/planet/<int:planet_id>", methods=["DELETE"])
+def delete_favorite_planet(user_id, planet_id):
+    favorite = (
+        db.session.query(Favorite)
+        .filter(Favorite.user_id == user_id, Favorite.planet_id == planet_id)
+        .first()
+    )
+
+    if favorite is None:
+        return jsonify({"msg": "Favorite planet not found"}), 404
+
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite planet deleted successfully"}), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
