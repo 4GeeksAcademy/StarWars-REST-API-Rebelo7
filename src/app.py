@@ -53,7 +53,7 @@ def handle_add_user():
 
 #Get a list of all users in the database
 
-@app.route('/user', methods=['GET'])
+@app.route('/users', methods=['GET'])
 def handle_get_users():
    all_users = User.query.all()
    all_users = list(map(lambda item: item.serialize(), all_users))
@@ -204,6 +204,8 @@ def people(people_id):
 
     return jsonify(response_body), 200
 
+#Get all the favorites that belong to the current user.
+
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorites(user_id):
     user = User.query.get(user_id)
@@ -245,6 +247,8 @@ def get_favorites(user_id):
         200,
     )
 
+#Add a new favorite planet to the current user with the planet id 
+
 @app.route("/favorite/user/<int:user_id>/planet/<int:planet_id>", methods=["POST"])
 def add_favorite_planet(user_id, planet_id):
     user = User.query.get(user_id)
@@ -276,6 +280,8 @@ def add_favorite_planet(user_id, planet_id):
 
     return jsonify({"msg": "Favorite planet added successfully"}), 201
 
+# Delete favorite planet with the id
+
 @app.route("/favorite/user/<int:user_id>/planet/<int:planet_id>", methods=["DELETE"])
 def delete_favorite_planet(user_id, planet_id):
     favorite = (
@@ -290,6 +296,8 @@ def delete_favorite_planet(user_id, planet_id):
     db.session.delete(favorite)
     db.session.commit()
     return jsonify({"msg": "Favorite planet deleted successfully"}), 200
+
+#Add new favorite people to the current user with the people id
 
 @app.route(
     "/favorite/user/<int:user_id>/character/<int:character_id>", methods=["POST"])
@@ -324,6 +332,8 @@ def add_favorite_character(user_id, character_id):
     db.session.commit()
 
     return jsonify({"msg": "Favorite character added successfully"}), 201
+
+#Delete favorite people with the id
 
 @app.route(
     "/favorite/user/<int:user_id>/character/<int:character_id>", methods=["DELETE"])
